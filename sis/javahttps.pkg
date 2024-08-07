@@ -1,0 +1,43 @@
+&EN
+
+#{"Java HTTPS Extension"},(0x20292B6A),1,0,0
+
+[0x101F7961], 0, 0, 0, {"S60ProductID"}
+[0x1028315F], 0, 0, 0, {"S60ProductID"}
+[0x20022E6D], 0, 0, 0, {"S60ProductID"}
+(0x20292B6B), *, *, *, {"MBedTLS library"}
+
+%{"nnproject"}
+:"nnproject"
+
+if not exists("c:\sys\bin\mbedtls.dll")
+	"mbedtls_notfound.txt"-"", FT, FORCEABORT
+endif
+
+if not exists("z:\resource\versions\java.txt")
+	"incompatible_java.txt"-"", FT, FORCEABORT
+endif
+
+; ^3 or jrt 2.1
+if exists("z:\system\install\Series60v5.2.sis") OR
+(exists("z:\system\install\Series60v5.0.sis") and exists("c:\resource\versions\java.txt"))
+	"anna.txt"-"", FT, TC
+	"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\javannssl.dll"-"c:\sys\bin\javannssl.dll"
+	"javannssl.odc"-"C:\resource\java\jvm\lib\jrt\javannssl.odc"
+	"G:\j2me_workspace\nnapi\javannssl.jar"-"C:\resource\java\jvm\lib\jrt\odc\javannssl.jar"
+	; auto installer
+	"g:\Progs\QtSDK\Symbian\SDKs\Symbian3Qt473\epoc32\data\z\resource\apps\javaexthttps.rsc" - "c:\resource\apps\javaexthttps.rsc"
+	"g:\Progs\QtSDK\Symbian\SDKs\Symbian3Qt473\epoc32\data\z\private\10003a3f\import\apps\javaexthttps_reg.rsc" - "c:\private\10003a3f\import\apps\javaexthttps_reg.rsc"
+	"G:\Progs\QtSDK\Symbian\SDKs\Symbian3Qt473\epoc32\release\armv5\urel\javaexthttps.exe"-"c:\sys\bin\javaexthttps.exe", FR, RI
+else ; 9.3
+	if not exists("c:\sys\bin\Midp2VmArgModifier.dll")
+		"argmodifier_notfound.txt"-"", FT, FORCEABORT
+	endif
+	"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\javannssl_93.dll"-"c:\sys\bin\javannssl.dll"
+	"G:\j2me_workspace\nnapi93\https93.jar"-"c:\java\https93.jar"
+	if not exists("c:\java\j9MidpArgs.txt")
+		"j9MidpArgs.txt"-"c:\java\j9MidpArgs.txt"
+	else
+		"93.txt"-"", FT, TC
+	endif
+endif

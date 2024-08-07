@@ -1,0 +1,1 @@
+Before installing make sure Open4All patch is enabled in RomPatcher

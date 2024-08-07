@@ -1,0 +1,1 @@
+Extension is not compatible with your device. S60 3rd Edition FP2 or later is required.

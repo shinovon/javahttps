@@ -1,0 +1,16 @@
+/*
+============================================================================
+ Name		: bld.inf
+ Author	  : 
+ Copyright   : 
+ Description : This file provides the information required for building the
+				whole of a javatls.
+============================================================================
+*/
+
+PRJ_PLATFORMS
+ARMV5 GCCE
+
+PRJ_MMPFILES
+javatls.mmp
+javatls_93.mmp

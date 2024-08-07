@@ -1,0 +1,2 @@
+Edit c:\java\j9MidpArgs.txt:
+Add -Xbootclasspath/p:C:\java\https93.jar

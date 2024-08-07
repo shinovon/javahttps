@@ -1,0 +1,10 @@
+[container]
+name=javannssl.jar
+type=JAR
+
+[packages]
+com/nokia/mj/impl/gcf/protocol/https
+ru/nnproject/tls
+
+[properties]
+-Dsymbianhttpspatch=1.0
