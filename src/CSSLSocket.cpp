@@ -273,6 +273,14 @@ TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 			PLOG(EJavaRuntime, "CSSLSocket::Read(): repeat requested");
 			continue;
 		}
+		if (r == MBEDTLS_ERR_SSL_CLIENT_RECONNECT) {
+			r = Handshake();
+			if (r < 0) {
+				ELOG1(EJavaRuntime, "CSSLSocket::Read(): reconnect handshake error: %x", -r);
+				break;
+			}
+			continue;
+		}
 		if (r < 0) {
 			ELOG1(EJavaRuntime, "CSSLSocket::Read(): ssl read error: %x", -r);
 			break;
