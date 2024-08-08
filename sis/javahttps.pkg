@@ -1,6 +1,6 @@
 &EN
 
-#{"Java HTTPS Extension"},(0x20292B6A),1,0,0
+#{"Java HTTPS Extension"},(0x20292B6A),1,1,0
 
 [0x101F7961], 0, 0, 0, {"S60ProductID"}
 [0x1028315F], 0, 0, 0, {"S60ProductID"}
