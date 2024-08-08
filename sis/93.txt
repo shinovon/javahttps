@@ -1,2 +1,2 @@
-Edit c:\java\j9MidpArgs.txt:
-Add -Xbootclasspath/p:C:\java\https93.jar
+Edit C:\java\j9MidpArgs.txt with X-Plore:
+Add ";c:\java\https93.jar" at the end of line that starts with "-Xbootclasspath/p:"

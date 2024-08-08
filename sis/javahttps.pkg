@@ -6,6 +6,7 @@
 [0x1028315F], 0, 0, 0, {"S60ProductID"}
 [0x20022E6D], 0, 0, 0, {"S60ProductID"}
 (0x20292B6B), *, *, *, {"MBedTLS library"}
+;(0x20292B6C), *, *, *, {"MBedTLS library v2"}
 
 %{"nnproject"}
 :"nnproject"
@@ -36,7 +37,8 @@ else ; 9.3
 	"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\javannssl_93.dll"-"c:\sys\bin\javannssl.dll"
 	"G:\j2me_workspace\nnapi93\https93.jar"-"c:\java\https93.jar"
 	if not exists("c:\java\j9MidpArgs.txt")
-		"j9MidpArgs.txt"-"c:\java\j9MidpArgs.txt"
+		;"j9MidpArgs.txt"-"c:\java\j9MidpArgs.txt"
+		"93_1.txt"-"", FT, TC
 	else
 		"93.txt"-"", FT, TC
 	endif

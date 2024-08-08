@@ -1,0 +1,2 @@
+Create j9MidpArgs.txt at C:\java with X-Plore
+Add "-Xbootclasspath/p:c:\java\https93.jar"
