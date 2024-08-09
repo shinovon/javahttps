@@ -15,7 +15,6 @@
 *
 */
 
-
 package com.nokia.mj.impl.gcf.protocol.ssl;
 
 import com.nokia.mj.impl.gcf.utils.J9GcfConnectionBase;
@@ -32,26 +31,22 @@ import java.io.IOException;
  * and calls the createConnection method to return a Connection
  */
 
-public class Connection extends J9GcfConnectionBase
-{
-    private static Protocol iProtocol = null;
+public class Connection extends J9GcfConnectionBase {
+	private static Protocol iProtocol = null;
 
-    public Connection()
-    {
-    }
+	public Connection() {
+	}
 
-    protected javax.microedition.io.Connection createConnection(String aName,
-            int aMode, boolean aTimeouts) throws IOException
-    {
-    	int i = aName.indexOf(";nokia_ssl=1");
-	    if(i != -1) {
-	    	aName = aName.substring(0, i) + aName.substring(i + 12);
-	        if (iProtocol == null)
-	        {
-	            iProtocol = new Protocol();
-	        }
-	        return iProtocol.openConnection(aName, aMode, aTimeouts);
-    	}
-	    return new SSLSocket(aName);
-    }
+	protected javax.microedition.io.Connection createConnection(String aName, int aMode, boolean aTimeouts)
+			throws IOException {
+		int i = aName.indexOf(";nokia_ssl=1");
+		if (i != -1) {
+			aName = aName.substring(0, i) + aName.substring(i + 12);
+			if (iProtocol == null) {
+				iProtocol = new Protocol();
+			}
+			return iProtocol.openConnection(aName, aMode, aTimeouts);
+		}
+		return new SSLSocket(aName);
+	}
 }
