@@ -7,13 +7,15 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
+import javax.microedition.io.SecureConnection;
+import javax.microedition.io.SecurityInfo;
 import javax.microedition.io.StreamConnection;
 
 import com.nokia.mj.impl.gcf.utils.UrlParser;
 import com.nokia.mj.impl.rt.support.Finalizer;
 import com.nokia.mj.impl.rt.support.Jvm;
 
-public class SSLSocket implements StreamConnection {
+public class SSLSocket implements SecureConnection {
 
 	private static LibraryFinalizer libraryFinalizer;
 	
@@ -33,6 +35,9 @@ public class SSLSocket implements StreamConnection {
 	int connectState;
 	private Finalizer finalizer;
 	
+	private String host;
+	private int port;
+	
 	public SSLSocket(String host, int port) throws IOException {
 		init("", host, port);
 	}
@@ -45,6 +50,8 @@ public class SSLSocket implements StreamConnection {
 	private void init(String url, String host, int port) throws IOException {
 		finalizer = registerFinalize();
 		handle = _new();
+		this.host = host;
+		this.port = port;
 		int r = _set(handle, url, host, port);
 		if (r != 0) {
 			throw new IOException("Set host failed: " + r);
@@ -177,6 +184,37 @@ public class SSLSocket implements StreamConnection {
 
 	public DataOutputStream openDataOutputStream() throws IOException {
 		return new DataOutputStream(openOutputStream());
+	}
+
+	public String getAddress() throws IOException {
+		return host;
+	}
+
+	public String getLocalAddress() throws IOException {
+		return System.getProperty("microedition.hostname");
+	}
+
+	public int getLocalPort() throws IOException {
+		// TODO
+		return 0;
+	}
+
+	public int getPort() throws IOException {
+		return port;
+	}
+
+	public int getSocketOption(byte arg0) throws IllegalArgumentException, IOException {
+		// TODO
+		return 0;
+	}
+
+	public void setSocketOption(byte arg0, int arg1) throws IllegalArgumentException, IOException {
+		// TODO
+	}
+
+	public SecurityInfo getSecurityInfo() throws IOException {
+		// TODO
+		return null;
 	}
 	
 	private Finalizer registerFinalize() {
