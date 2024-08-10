@@ -47,6 +47,8 @@ public class Connection extends J9GcfConnectionBase {
 			}
 			return iProtocol.openConnection(aName, aMode, aTimeouts);
 		}
-		return new SSLSocket(aName);
+		SSLSocket s = new SSLSocket(aName);
+//		s.setTimeouts(aTimeouts);
+		return s;
 	}
 }

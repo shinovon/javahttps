@@ -4,15 +4,16 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
-import javax.microedition.io.StreamConnection;
+import javax.microedition.io.SecureConnection;
+import javax.microedition.io.SecurityInfo;
 
 import com.nokia.mj.impl.vmport.Finalizer;
 import com.nokia.mj.impl.vmport.VmPort;
+import com.symbian.gcf.URI;
 
-public class SSLSocket implements StreamConnection {
+public class SSLSocket implements SecureConnection {
 
 	private static LibraryFinalizer libraryFinalizer;
 	
@@ -32,42 +33,43 @@ public class SSLSocket implements StreamConnection {
 	int connectState;
 	private Finalizer finalizer;
 	
+	private String host;
+	private int port;
+	
 	public SSLSocket(String host, int port) throws IOException {
+		init("", host, port);
+	}
+	
+	public SSLSocket(String aUrl) throws IOException {
+		URI url = new URI("ssl:" + aUrl);
+		init(aUrl, url.getHost(), Integer.parseInt(url.getPort()));
+	}
+	
+	private void init(String url, String host, int port) throws IOException {
 		finalizer = registerFinalize();
-		System.out.println("creating");
 		handle = _new();
-		System.out.println("created");
-		int r = _set(handle, "", host, port);
+		this.host = host;
+		this.port = port;
+		int r = _set(handle, url, host, port);
 		if (r != 0) {
 			throw new IOException("Set host failed: " + r);
 		}
-		System.out.println("set");
 		r = _initSsl(handle);
 		if (r != 0) {
 			throw new IOException("Init ssl failed: " + r);
 		}
-		System.out.println("inited");
-	}
-	
-	public SSLSocket(String url) throws IOException {
-		throw new IOException("Not supported");
 	}
 	
 	public void connect() throws IOException{
 		if (connectState != 0) return;
 		connectState = 1;
-		System.out.println("connecting");
-		long l = System.currentTimeMillis();
 		int r = _connect(handle);
 		if (r != 0)
 			throw new IOException("Connect error " + r);
-		System.out.println("connected in " + (System.currentTimeMillis()-l));
 
-		l = System.currentTimeMillis();
 		r = _handshake(handle);
 		if (r != 0)
 			throw new IOException("Handshake error " + r);
-		System.out.println("handshaked in " + (System.currentTimeMillis()-l));
 	}
 	
 	public InputStream openInputStream() throws IOException {
@@ -106,11 +108,6 @@ public class SSLSocket implements StreamConnection {
 				if (r == 0) return -1;
 				if (r < 0) {
 					throw new IOException("Read error " + r);
-				}
-				try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					throw new InterruptedIOException(e.toString());
 				}
 				return r;
 			}
@@ -180,6 +177,37 @@ public class SSLSocket implements StreamConnection {
 
 	public DataOutputStream openDataOutputStream() throws IOException {
 		return new DataOutputStream(openOutputStream());
+	}
+
+	public String getAddress() throws IOException {
+		return host;
+	}
+
+	public String getLocalAddress() throws IOException {
+		return System.getProperty("microedition.hostname");
+	}
+
+	public int getLocalPort() throws IOException {
+		// TODO
+		return 0;
+	}
+
+	public int getPort() throws IOException {
+		return port;
+	}
+
+	public int getSocketOption(byte arg0) throws IllegalArgumentException, IOException {
+		// TODO
+		return 0;
+	}
+
+	public void setSocketOption(byte arg0, int arg1) throws IllegalArgumentException, IOException {
+		// TODO
+	}
+
+	public SecurityInfo getSecurityInfo() throws IOException {
+		// TODO
+		return null;
 	}
 	
 	private Finalizer registerFinalize() {

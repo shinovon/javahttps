@@ -4,12 +4,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
 import javax.microedition.io.SecureConnection;
 import javax.microedition.io.SecurityInfo;
-import javax.microedition.io.StreamConnection;
 
 import com.nokia.mj.impl.gcf.utils.UrlParser;
 import com.nokia.mj.impl.rt.support.Finalizer;
@@ -43,7 +41,7 @@ public class SSLSocket implements SecureConnection {
 	}
 	
 	public SSLSocket(String aUrl) throws IOException {
-		UrlParser url = new UrlParser("ssl://" + aUrl);
+		UrlParser url = new UrlParser("ssl:" + aUrl);
 		init(aUrl, url.host, url.port);
 	}
 	
@@ -110,11 +108,6 @@ public class SSLSocket implements SecureConnection {
 				if (r == 0) return -1;
 				if (r < 0) {
 					throw new IOException("Read error " + r);
-				}
-				try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					throw new InterruptedIOException(e.toString());
 				}
 				return r;
 			}
