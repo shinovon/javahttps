@@ -74,6 +74,7 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1read
 		aEnv->SetByteArrayRegion(aData, aOffset, r, jNativeBufferPtr);
 //#endif
 	}
+	delete[] data;
 	return r;
 }
 
