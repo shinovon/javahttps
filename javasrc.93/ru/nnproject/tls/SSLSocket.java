@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
 import javax.microedition.io.SecureConnection;
@@ -108,6 +109,11 @@ public class SSLSocket implements SecureConnection {
 				if (r == 0) return -1;
 				if (r < 0) {
 					throw new IOException("Read error " + r);
+				}
+				try {
+					Thread.yield();
+				} catch (Exception e) {
+					throw new InterruptedIOException();
 				}
 				return r;
 			}
