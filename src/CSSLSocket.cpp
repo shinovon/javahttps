@@ -23,7 +23,7 @@
 
 CSSLSocket::CSSLSocket()
 {
-	PLOG(EJavaRuntime, "+CSSLSocket::CSSLSocket()");
+//	PLOG(EJavaRuntime, "+CSSLSocket::CSSLSocket()");
 #ifdef USE_MBEDTLS_NET
 	mbedtls_net_init(&server_fd);
 #endif
@@ -32,12 +32,12 @@ CSSLSocket::CSSLSocket()
 	mbedtls_ssl_config_init(&conf);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
 	mbedtls_entropy_init(&entropy);
-	PLOG(EJavaRuntime, "-CSSLSocket::CSSLSocket()");
+//	PLOG(EJavaRuntime, "-CSSLSocket::CSSLSocket()");
 }
 
 CSSLSocket::~CSSLSocket()
 {
-	PLOG(EJavaRuntime, "+CSSLSocket::~CSSLSocket()");
+//	PLOG(EJavaRuntime, "+CSSLSocket::~CSSLSocket()");
 #ifdef USE_MBEDTLS_NET
 	mbedtls_net_free(&server_fd);
 #else
@@ -58,7 +58,7 @@ CSSLSocket::~CSSLSocket()
 	if (iHost != NULL) {
 		delete[] iHost;
 	}
-	PLOG(EJavaRuntime, "-CSSLSocket::~CSSLSocket()");
+//	PLOG(EJavaRuntime, "-CSSLSocket::~CSSLSocket()");
 }
 
 #ifndef USE_MBEDTLS_NET
@@ -92,7 +92,7 @@ static int recv_callback(void *ctx, unsigned char *buf, size_t len)
 
 TInt CSSLSocket::InitSsl()
 {
-	PLOG(EJavaRuntime, "+CSSLSocket::InitSsl()");
+//	PLOG(EJavaRuntime, "+CSSLSocket::InitSsl()");
 
 	TInt ret(0);
 	
@@ -126,19 +126,19 @@ TInt CSSLSocket::InitSsl()
 #endif
 	
 	exit:
-	PLOG(EJavaRuntime, "-CSSLSocket::InitSsl()");
+//	PLOG(EJavaRuntime, "-CSSLSocket::InitSsl()");
 	return ret;
 }
 
 TInt CSSLSocket::CloseSsl()
 {
-	PLOG(EJavaRuntime, "CSSLSocket::CloseSsl()");
+//	PLOG(EJavaRuntime, "CSSLSocket::CloseSsl()");
 	return mbedtls_ssl_close_notify(&ssl);
 }
 
 void CSSLSocket::CloseConnection()
 {
-	PLOG(EJavaRuntime, "CSSLSocket::CloseConnection()");
+//	PLOG(EJavaRuntime, "CSSLSocket::CloseConnection()");
 #ifdef USE_MBEDTLS_NET
 	mbedtls_net_close(&server_fd);
 #else
@@ -151,7 +151,7 @@ void CSSLSocket::CloseConnection()
 
 void CSSLSocket::Set(const char* aName, const char* aHost, int aPort)
 {
-	PLOG(EJavaRuntime, "CSSLSocket::Set()");
+//	PLOG(EJavaRuntime, "CSSLSocket::Set()");
 //	iName = new char[strlen(aName)+1];
 //	strcpy(iName, aName);
 	iHost = new char[strlen(aHost)+1];
@@ -191,11 +191,11 @@ void itoa(int n, char s[])
 
 TInt CSSLSocket::Connect()
 {
-	PLOG(EJavaRuntime, "+CSSLSocket::Connect()");
+//	PLOG(EJavaRuntime, "+CSSLSocket::Connect()");
 #ifdef USE_MBEDTLS_NET
 	char *port = new char[8];
 	itoa(iPort, port);
-	PLOG2(EJavaRuntime, "CSSLSocket::Connect(): host=%s, port=%s", iHost, port);
+//	PLOG2(EJavaRuntime, "CSSLSocket::Connect(): host=%s, port=%s", iHost, port);
 	
 	TInt ret(0);
 	if ((ret = mbedtls_net_connect(&server_fd, iHost, port, MBEDTLS_NET_PROTO_TCP)) != 0) {
@@ -225,13 +225,13 @@ TInt CSSLSocket::Connect()
 		return -2;
 	}
 #endif
-	PLOG(EJavaRuntime, "-CSSLSocket::Connect()");
+//	PLOG(EJavaRuntime, "-CSSLSocket::Connect()");
 	return 0;
 }
 
 TInt CSSLSocket::Handshake()
 { 
-	PLOG(EJavaRuntime, "+CSSLSocket::Handshake()");
+//	PLOG(EJavaRuntime, "+CSSLSocket::Handshake()");
 	int ret(0);
 
 	if ((ret = mbedtls_ssl_set_hostname(&ssl, (const char*) iHost)) != 0) {
@@ -255,7 +255,7 @@ TInt CSSLSocket::Handshake()
 	}
 	
 	exit:
-	PLOG(EJavaRuntime, "-CSSLSocket::Handshake()");
+//	PLOG(EJavaRuntime, "-CSSLSocket::Handshake()");
 	return ret;
 }
 
@@ -270,7 +270,7 @@ TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 			r == MBEDTLS_ERR_SSL_WANT_WRITE/* ||
 			r == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
 			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS*/) {
-			PLOG(EJavaRuntime, "CSSLSocket::Read(): repeat requested");
+//			PLOG(EJavaRuntime, "CSSLSocket::Read(): repeat requested");
 			continue;
 		}
 		if (r == MBEDTLS_ERR_SSL_CLIENT_RECONNECT) {
@@ -302,7 +302,7 @@ TInt CSSLSocket::Write(const unsigned char* aData, int aLen)
 			r == MBEDTLS_ERR_SSL_WANT_WRITE/* ||
 			r == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
 			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS*/) {
-			PLOG(EJavaRuntime, "CSSLSocket::Write(): repeat requested");
+//			PLOG(EJavaRuntime, "CSSLSocket::Write(): repeat requested");
 			continue;
 		}
 		if (r < 0) {
