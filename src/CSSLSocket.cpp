@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2024 Arman Jussupgaliyev
+ */
+
 #include "SSLSocket.h"
 #include <stdio.h>
 #include <stdlib.h>

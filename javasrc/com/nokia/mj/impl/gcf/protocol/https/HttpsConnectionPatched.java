@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2024 Arman Jussupgaliyev
+ */
+
 package com.nokia.mj.impl.gcf.protocol.https;
 
 import java.io.IOException;

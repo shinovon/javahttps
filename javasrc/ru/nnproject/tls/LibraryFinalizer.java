@@ -1,4 +1,8 @@
-package ru.nnproject.tls;
+/**
+ * Copyright (c) 2024 Arman Jussupgaliyev
+ */
+ 
+ package ru.nnproject.tls;
 
 import com.nokia.mj.impl.rt.support.Finalizer;
 

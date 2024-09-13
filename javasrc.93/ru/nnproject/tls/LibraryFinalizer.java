@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2024 Arman Jussupgaliyev
+ */
+
 package ru.nnproject.tls;
 
 import com.nokia.mj.impl.vmport.Finalizer;

@@ -1,4 +1,5 @@
-// Decompiled by Jad v1.5.8g. Copyright 2001 Pavel Kouznetsov.
+// Copyright IBM
+
 package com.nokia.mj.impl.gcf.protocol.https;
 
 import com.ibm.oti.connection.BufferedInputStream;

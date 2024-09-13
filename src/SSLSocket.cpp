@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2024 Arman Jussupgaliyev
+ */
+
 #include "ru_nnproject_tls_SSLSocket.h"
 #include <jni.h>
 #include "SSLSocket.h"
