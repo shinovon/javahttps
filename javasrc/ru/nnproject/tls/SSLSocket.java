@@ -2,7 +2,7 @@
  * Copyright (c) 2024 Arman Jussupgaliyev
  */
  
- package ru.nnproject.tls;
+package ru.nnproject.tls;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
