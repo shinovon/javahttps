@@ -118,6 +118,8 @@ TInt CSSLSocket::InitSsl()
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 //	mbedtls_ssl_conf_dbg(&conf, my_debug, stdout);
+	mbedtls_ssl_conf_session_tickets(&conf, 0);
+	mbedtls_ssl_conf_renegotiation(&conf, 0);
 	
 	if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::InitSsl(): Setup error: %x", -ret);
