@@ -245,9 +245,9 @@ TInt CSSLSocket::Handshake()
 	
 	while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
 		if (ret == MBEDTLS_ERR_SSL_WANT_READ ||
-			ret == MBEDTLS_ERR_SSL_WANT_WRITE/* ||
+			ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
 			ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS*/) {
+			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
 			continue;
 		}
 		
@@ -271,9 +271,10 @@ TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 		r = mbedtls_ssl_read(&ssl, (unsigned char*) aData, static_cast<unsigned int>(aLen));
 		
 		if (r == MBEDTLS_ERR_SSL_WANT_READ ||
-			r == MBEDTLS_ERR_SSL_WANT_WRITE/* ||
+			r == MBEDTLS_ERR_SSL_WANT_WRITE ||
 			r == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS*/) {
+			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
+			r == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET) {
 //			PLOG(EJavaRuntime, "CSSLSocket::Read(): repeat requested");
 			continue;
 		}
@@ -301,11 +302,12 @@ TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 TInt CSSLSocket::Write(const unsigned char* aData, int aLen)
 {
 	int r;
-	while ((r = mbedtls_ssl_write(&ssl, (const unsigned char*) aData, static_cast<unsigned int>(aLen))) <= 0) {
+	while ((r = mbedtls_ssl_write(&ssl, (const unsigned char*) aData, static_cast<unsigned int>(aLen))) < 0) {
 		if (r == MBEDTLS_ERR_SSL_WANT_READ ||
-			r == MBEDTLS_ERR_SSL_WANT_WRITE/* ||
+			r == MBEDTLS_ERR_SSL_WANT_WRITE ||
 			r == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS*/) {
+			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
+			r == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET) {
 //			PLOG(EJavaRuntime, "CSSLSocket::Write(): repeat requested");
 			continue;
 		}
