@@ -269,7 +269,6 @@ TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 {
 	int r;
 	do {
-		memset(aData, 0, sizeof(aData));
 		r = mbedtls_ssl_read(&ssl, (unsigned char*) aData, static_cast<unsigned int>(aLen));
 		
 		if (r == MBEDTLS_ERR_SSL_WANT_READ ||

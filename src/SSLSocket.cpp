@@ -30,10 +30,10 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1set
  (JNIEnv* aEnv, jobject, jint aHandle, jstring aUrl, jstring aHost, jint aPort)
 {
 	CSSLSocket* s = reinterpret_cast<CSSLSocket*>(aHandle);
-	const char* url = aEnv->GetStringUTFChars(aUrl, 0);
+//	const char* url = aEnv->GetStringUTFChars(aUrl, 0);
 	const char* host = aEnv->GetStringUTFChars(aHost, 0);
-	s->Set(url, host, aPort);
-	aEnv->ReleaseStringUTFChars(aUrl, url);
+	s->Set(NULL, host, aPort);
+//	aEnv->ReleaseStringUTFChars(aUrl, url);
 	aEnv->ReleaseStringUTFChars(aHost, host);
 	
 	return 0;
@@ -98,7 +98,6 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1write
 	TInt r = s->Write((const unsigned char*) data, aLen);
 	
 	delete[] data;
-	data = NULL;
 	
 	return r;
 }
