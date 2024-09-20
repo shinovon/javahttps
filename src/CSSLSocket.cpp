@@ -20,7 +20,8 @@
 #else
 #define PLOG(component, str)
 #define PLOG1(component, str, a)
-#define PLOG2(component, str, a)
+#define PLOG2(component, str, a, b)
+#define ELOG(component, str)
 #define ELOG1(component, str, a)
 #endif
 
@@ -215,11 +216,13 @@ TInt CSSLSocket::Connect()
 	
 	iSockDesc = socket(AF_INET, SOCK_STREAM, 0);
 	if (iSockDesc < 0) {
+		ELOG(EJavaRuntime, "CSSLSocket::Connect(): Socket error");
 		return -3;
 	}
 	if (!inet_aton(iHost, &addr.sin_addr)) {
 		struct hostent* hp = gethostbyname(iHost);
 		if (hp == NULL) {
+			ELOG(EJavaRuntime, "CSSLSocket::Connect(): Host not found");
 			return -1;
 		}
 		addr.sin_addr.s_addr = ((struct in_addr*)(hp->h_addr))->s_addr;
@@ -237,87 +240,65 @@ TInt CSSLSocket::Connect()
 
 TInt CSSLSocket::Handshake()
 { 
-//	PLOG(EJavaRuntime, "+CSSLSocket::Handshake()");
 	int ret(0);
 
 	if ((ret = mbedtls_ssl_set_hostname(&ssl, (const char*) iHost)) != 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::Handshake(): set hostname error: %x", -ret);
-		goto exit;
+		return ret;
 	}
 	
-	while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
-		if (ret == MBEDTLS_ERR_SSL_WANT_READ ||
+	do {
+		(ret = mbedtls_ssl_handshake(&ssl));
+	} while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
 			ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
 			ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
-			continue;
-		}
-		
-		if (ret < 0) {
-			ELOG1(EJavaRuntime, "CSSLSocket::Handshake(): handshake error: %x", -ret);
-		}
-			
-		break;
+			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS);
+	if (ret < 0) {
+		ELOG1(EJavaRuntime, "CSSLSocket::Handshake(): ssl handshake error: %x", -ret);
 	}
-	
-	exit:
-//	PLOG(EJavaRuntime, "-CSSLSocket::Handshake()");
 	return ret;
 }
 
 TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 {
-	int r;
+	int ret;
 	do {
-		r = mbedtls_ssl_read(&ssl, (unsigned char*) aData, static_cast<unsigned int>(aLen));
-		
-		if (r == MBEDTLS_ERR_SSL_WANT_READ ||
-			r == MBEDTLS_ERR_SSL_WANT_WRITE ||
-			r == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
-			r == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET) {
-//			PLOG(EJavaRuntime, "CSSLSocket::Read(): repeat requested");
-			continue;
-		}
-		if (r == MBEDTLS_ERR_SSL_CLIENT_RECONNECT) {
-			r = Handshake();
-			if (r < 0) {
-				ELOG1(EJavaRuntime, "CSSLSocket::Read(): reconnect handshake error: %x", -r);
+		ret = mbedtls_ssl_read(&ssl, (unsigned char*) aData, static_cast<unsigned int>(aLen));
+		if (ret == MBEDTLS_ERR_SSL_CLIENT_RECONNECT) {
+			PLOG(EJavaRuntime, "CSSLSocket::Read(): reconnect requested");
+			ret = Handshake();
+			if (ret < 0) {
 				break;
 			}
 			continue;
 		}
-		if (r < 0) {
-			ELOG1(EJavaRuntime, "CSSLSocket::Read(): ssl read error: %x", -r);
-			break;
-		}
-//		PLOG1(EJavaRuntime, "CSSLSocket::Read(): read bytes: %d", r);
-//		if (r == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
-//			break;
-//		}
-		break;
-	} while (1);
-	return r;
+	} while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
+			ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+			ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
+	if (ret < 0) {
+		ELOG1(EJavaRuntime, "CSSLSocket::Read(): ssl read error: %x", -ret);
+	}
+	return ret;
 }
 
 TInt CSSLSocket::Write(const unsigned char* aData, int aLen)
 {
-	int r;
-	while ((r = mbedtls_ssl_write(&ssl, (const unsigned char*) aData, static_cast<unsigned int>(aLen))) < 0) {
-		if (r == MBEDTLS_ERR_SSL_WANT_READ ||
-			r == MBEDTLS_ERR_SSL_WANT_WRITE ||
-			r == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			r == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
-			r == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET) {
-//			PLOG(EJavaRuntime, "CSSLSocket::Write(): repeat requested");
+	int ret, pos(0);
+	do {
+		ret = mbedtls_ssl_write(&ssl, (const unsigned char*) aData + pos, static_cast<unsigned int>(aLen - pos));
+		if (ret < aLen) {
+			pos += ret;
 			continue;
 		}
-		if (r < 0) {
-			ELOG1(EJavaRuntime, "CSSLSocket::Write(): ssl write error: %x", -r);
-			break;
-		}
-//		PLOG1(EJavaRuntime, "CSSLSocket::Write(): wrote bytes: %d", r);
-		break;
+	} while(ret == MBEDTLS_ERR_SSL_WANT_READ ||
+			ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+			ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
+	if (ret < 0) {
+		ELOG1(EJavaRuntime, "CSSLSocket::Write(): ssl write error: %x", -ret);
 	}
-	return r;
+	return ret;
 }
