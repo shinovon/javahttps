@@ -8,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
 import javax.microedition.io.SecureConnection;
@@ -20,8 +21,10 @@ import com.nokia.mj.impl.rt.support.Jvm;
 public class SSLSocket implements SecureConnection {
 
 	private static LibraryFinalizer libraryFinalizer;
+	private final static Object globalLock;
 	
 	static {
+		globalLock = new Object();
 		try {
 			Jvm.loadSystemLibrary("javannssl");
 			_initLibrary();
@@ -51,16 +54,18 @@ public class SSLSocket implements SecureConnection {
 	
 	private void init(String url, String host, int port) throws IOException {
 		finalizer = registerFinalize();
-		handle = _new();
-		this.host = host;
-		this.port = port;
-		int r = _set(handle, url, host, port);
-		if (r != 0) {
-			throw new IOException("Set host failed: " + r);
-		}
-		r = _initSsl(handle);
-		if (r != 0) {
-			throw new IOException("Init ssl failed: " + r);
+		synchronized (globalLock) {
+			handle = _new();
+			this.host = host;
+			this.port = port;
+			int r = _set(handle, url, host, port);
+			if (r != 0) {
+				throw new IOException("Set host failed: " + r);
+			}
+			r = _initSsl(handle);
+			if (r != 0) {
+				throw new IOException("Init ssl failed: " + r);
+			}
 		}
 	}
 	
@@ -84,7 +89,7 @@ public class SSLSocket implements SecureConnection {
 		inputState = 1;
 		return new InputStream() {
 
-			public int read() throws IOException {
+			public synchronized int read() throws IOException {
 				if (handle == 0 || inputState == 2)
 					throw new IOException("Closed");
 				byte[] data = new byte[1];
@@ -96,7 +101,7 @@ public class SSLSocket implements SecureConnection {
 				return r;
 			}
 			
-			public int read(byte[] buf, int off, int len) throws IOException {
+			public synchronized int read(byte[] buf, int off, int len) throws IOException {
 				if (handle == 0 || inputState == 2)
 					throw new IOException("Closed");
 				if (len+off > buf.length || off < 0 || len < 0)
@@ -131,7 +136,7 @@ public class SSLSocket implements SecureConnection {
 		outputState = 1;
 		return new OutputStream() {
 
-			public void write(int b) throws IOException {
+			public synchronized void write(int b) throws IOException {
 				if (handle == 0 || outputState == 2)
 					throw new IOException("Closed");
 				byte[] data = new byte[1];
@@ -142,7 +147,7 @@ public class SSLSocket implements SecureConnection {
 			}
 
 			
-			public void write(byte[] buf, int off, int len) throws IOException {
+			public synchronized void write(byte[] buf, int off, int len) throws IOException {
 				if (handle == 0 || outputState == 2)
 					throw new IOException("Closed");
 				if (len+off > buf.length || off < 0 || len < 0)
@@ -169,9 +174,11 @@ public class SSLSocket implements SecureConnection {
 	public void close() {
 		if (connectState == 2 || handle == 0) return;
 		connectState = 2;
-		_closeSsl(handle);
-		_closeConnection(handle);
-		_destruct(handle);
+		synchronized (globalLock) {
+			_closeSsl(handle);
+			_closeConnection(handle);
+			_destruct(handle);
+		}
 		handle = 0;
 	}
 

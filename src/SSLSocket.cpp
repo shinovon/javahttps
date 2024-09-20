@@ -19,6 +19,8 @@
 #endif
 #include <mbedtls/debug.h>
 
+static bool psaInitState = false;
+
 JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1new
  (JNIEnv* aEnv, jobject)
 {
@@ -130,9 +132,12 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1initLibrary
  (JNIEnv*, jclass)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-	psa_status_t status = psa_crypto_init();
-	if (status != PSA_SUCCESS) {
-		ELOG1(EJavaRuntime, "PSA init error: %x", -((int) status));
+	if (!psaInitState) {
+		psaInitState = true;
+		psa_status_t status = psa_crypto_init();
+		if (status != PSA_SUCCESS) {
+			ELOG1(EJavaRuntime, "PSA init error: %x", -((int) status));
+		}
 	}
 #endif
 	
@@ -146,7 +151,9 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1freeLibrary
  (JNIEnv*, jclass)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-	mbedtls_psa_crypto_free();
+	if (psaInitState) {
+		mbedtls_psa_crypto_free();
+	}
 #endif
 	return 0;
 }
