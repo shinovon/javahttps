@@ -110,7 +110,7 @@ public class SSLSocket implements SecureConnection {
 				if (off > 0) {
 					byte[] temp = new byte[len];
 					r = _read(handle, temp, 0, len);
-					System.arraycopy(temp, 0, buf, 0, r);
+					System.arraycopy(temp, 0, buf, off, r);
 				} else {
 					r = _read(handle, buf, off, len);
 				}
