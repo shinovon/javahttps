@@ -17,14 +17,14 @@
 #define PLOG2(component, str, a)
 #define ELOG1(component, str, a)
 #endif
-#include <mbedtls/debug.h>
+//#include <mbedtls/debug.h>
 
-static bool psaInitState = false;
+//static bool psaInitState = false;
 
 JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1new
  (JNIEnv* aEnv, jobject)
 {
-	CSSLSocket* s = new CSSLSocket;
+	CSSLSocket* s = new CSSLSocket();
 	return reinterpret_cast<jint>(s);
 }
 
@@ -69,18 +69,7 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1read
  (JNIEnv* aEnv, jobject, jint aHandle, jbyteArray aData, jint aOffset, jint aLen)
 {
 	CSSLSocket* s = reinterpret_cast<CSSLSocket*>(aHandle);
-	char* data = new char[aLen];
-	TInt r = s->Read((unsigned char*) data, aLen);
-	if (r > 0) {
-//#ifdef RD_JAVA_S60_RELEASE_9_2
-//		JNIArrayUtils::CopyToJava(*aEnv, data, r, aData, aOffset, r);
-//#else
-		char* nativeBufferPtr = const_cast<char *>(data);
-		jbyte* jNativeBufferPtr = reinterpret_cast<jbyte*>(nativeBufferPtr);
-		aEnv->SetByteArrayRegion(aData, aOffset, r, jNativeBufferPtr);
-//#endif
-	}
-	delete[] data;
+	TInt r = s->Read(aEnv, aData, aOffset, aLen);
 	return r;
 }
 
@@ -88,18 +77,17 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1write
  (JNIEnv* aEnv, jobject, jint aHandle, jbyteArray aData, jint aOffset, jint aLen)
 {
 	CSSLSocket* s = reinterpret_cast<CSSLSocket*>(aHandle);
-	char *data = new char[aLen + 1];
+	signed char *data = (signed char*) new char[aLen];
 //#ifdef RD_JAVA_S60_RELEASE_9_2
 //	JNIArrayUtils::CopyToNative(*aEnv, aData, aOffset, aLen, data);
 //#else
-	char* nativeBufferPtr = const_cast<char*>(data);
-	jbyte* jNativeBufferPtr = reinterpret_cast<jbyte*>(nativeBufferPtr);
-	aEnv->GetByteArrayRegion(aData, aOffset, aLen, jNativeBufferPtr);
+	aEnv->GetByteArrayRegion(aData, aOffset, aLen, data);
 //#endif
 	
-	TInt r = s->Write((const unsigned char*) data, aLen);
+	TInt r = s->Write((unsigned char*) data, aLen);
 	
 	delete[] data;
+	data = NULL;
 	
 	return r;
 }
@@ -132,13 +120,13 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1initLibrary
  (JNIEnv*, jclass)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-	if (!psaInitState) {
-		psaInitState = true;
+//	if (!psaInitState) {
+//		psaInitState = true;
 		psa_status_t status = psa_crypto_init();
 		if (status != PSA_SUCCESS) {
 			ELOG1(EJavaRuntime, "PSA init error: %x", -((int) status));
 		}
-	}
+//	}
 #endif
 	
 //#if defined(MBEDTLS_DEBUG_C)
@@ -151,9 +139,9 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1freeLibrary
  (JNIEnv*, jclass)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-	if (psaInitState) {
+//	if (psaInitState) {
 		mbedtls_psa_crypto_free();
-	}
+//	}
 #endif
 	return 0;
 }

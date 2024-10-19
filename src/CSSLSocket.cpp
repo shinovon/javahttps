@@ -5,13 +5,13 @@
 #include "SSLSocket.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #ifndef USE_MBEDTLS_NET
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <unistd.h>
 #include <arpa/inet.h>
-#include <string.h>
 #include <wchar.h>
 #include <errno.h>
 #endif
@@ -42,6 +42,11 @@ CSSLSocket::CSSLSocket()
 
 CSSLSocket::~CSSLSocket()
 {
+	mbedtls_ssl_free(&ssl);
+	mbedtls_ssl_config_free(&conf);
+	mbedtls_ctr_drbg_free(&ctr_drbg);
+	mbedtls_entropy_free(&entropy);
+	
 //	PLOG(EJavaRuntime, "+CSSLSocket::~CSSLSocket()");
 #ifdef USE_MBEDTLS_NET
 	mbedtls_net_free(&server_fd);
@@ -51,17 +56,16 @@ CSSLSocket::~CSSLSocket()
 		iSockDesc = NULL;
 	}
 #endif
-	
-	mbedtls_ssl_free(&ssl);
-	mbedtls_ssl_config_free(&conf);
-	mbedtls_ctr_drbg_free(&ctr_drbg);
-	mbedtls_entropy_free(&entropy);
 
 //	if (iName != NULL) {
 //		delete[] iName;
 //	}
 	if (iHost != NULL) {
 		delete[] iHost;
+	}
+	if (iBuffer != NULL) {
+		delete[] iBuffer;
+		iBuffer = NULL;
 	}
 //	PLOG(EJavaRuntime, "-CSSLSocket::~CSSLSocket()");
 }
@@ -70,19 +74,29 @@ CSSLSocket::~CSSLSocket()
 static int send_callback(void *ctx, const unsigned char *buf, size_t len)
 {
 	CSSLSocket* s = (CSSLSocket*) ctx;
+	if (s->iSockDesc == NULL) {
+		return MBEDTLS_ERR_NET_SEND_FAILED;
+	}
 	int r = send(s->iSockDesc, buf, len, 0);
-	if (r < 0)
+	if (r < 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::send_callback(): Socket send error: %d", errno);
+		return MBEDTLS_ERR_NET_SEND_FAILED;
+	}
 	return r;
 }
 
 static int recv_callback(void *ctx, unsigned char *buf, size_t len)
 {
 	CSSLSocket* s = (CSSLSocket*) ctx;
+	if (s->iSockDesc == NULL) {
+		return MBEDTLS_ERR_NET_RECV_FAILED;
+	}
 	int r = recv(s->iSockDesc, buf, len, 0);
-	if (r < 0)
-		ELOG1(EJavaRuntime, "CSSLSocket::recv_callback(): Socket recv error: %d", errno);
 	if (r == -1 && errno == EAGAIN) return 0;
+	if (r < 0) {
+		ELOG1(EJavaRuntime, "CSSLSocket::recv_callback(): Socket recv error: %d", errno);
+		return MBEDTLS_ERR_NET_RECV_FAILED;
+	}
 	return r;
 }
 #endif
@@ -215,7 +229,7 @@ TInt CSSLSocket::Connect()
 	addr.sin_port = htons(iPort);
 	
 	iSockDesc = socket(AF_INET, SOCK_STREAM, 0);
-	if (iSockDesc < 0) {
+	if (iSockDesc == -1) {
 		ELOG(EJavaRuntime, "CSSLSocket::Connect(): Socket error");
 		return -3;
 	}
@@ -231,6 +245,8 @@ TInt CSSLSocket::Connect()
 	int rc = connect(iSockDesc, (struct sockaddr*)&addr, sizeof(addr));
 	if (rc < 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::Connect(): Connect error: %d", rc);
+		close(iSockDesc);
+		iSockDesc = NULL;
 		return -2;
 	}
 #endif
@@ -242,7 +258,7 @@ TInt CSSLSocket::Handshake()
 { 
 	int ret(0);
 
-	if ((ret = mbedtls_ssl_set_hostname(&ssl, (const char*) iHost)) != 0) {
+	if ((ret = mbedtls_ssl_set_hostname(&ssl, iHost)) != 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::Handshake(): set hostname error: %x", -ret);
 		return ret;
 	}
@@ -259,11 +275,29 @@ TInt CSSLSocket::Handshake()
 	return ret;
 }
 
-TInt CSSLSocket::Read(unsigned char* aData, int aLen)
+TInt CSSLSocket::Read(JNIEnv* aEnv, jbyteArray aJavaArray, int aOffset, int aLen)
 {
+	if (iBuffer == NULL) {
+		iBuffer = new char[BUFFER_SIZE];
+		iBufferPosition = 0;
+		iBufferState = 0;
+	}
+	if (iBufferState && iBufferPosition < iBufferState) {
+		int ret = iBufferState - iBufferPosition;
+		if (ret > aLen) ret = aLen;
+		aEnv->SetByteArrayRegion(aJavaArray, aOffset, ret, (signed char*) (iBuffer + iBufferPosition));
+		iBufferPosition += ret;
+		if (iBufferPosition == iBufferState) {
+			iBufferState = 0;
+			iBufferPosition = 0;
+		}
+		return ret;
+	}
 	int ret;
+	int len = aLen;
+	if (len > BUFFER_SIZE) len = BUFFER_SIZE;
 	do {
-		ret = mbedtls_ssl_read(&ssl, (unsigned char*) aData, static_cast<unsigned int>(aLen));
+		ret = mbedtls_ssl_read(&ssl, (unsigned char*) iBuffer, static_cast<unsigned int>(len));
 		if (ret == MBEDTLS_ERR_SSL_CLIENT_RECONNECT) {
 			PLOG(EJavaRuntime, "CSSLSocket::Read(): reconnect requested");
 			ret = Handshake();
@@ -280,6 +314,11 @@ TInt CSSLSocket::Read(unsigned char* aData, int aLen)
 	if (ret < 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::Read(): ssl read error: %x", -ret);
 	}
+	iBufferState = ret;
+	iBufferPosition = 0;
+	if (ret > aLen) ret = aLen;
+	aEnv->SetByteArrayRegion(aJavaArray, aOffset, ret, (signed char*) iBuffer);
+	iBufferPosition += ret;
 	return ret;
 }
 
@@ -287,7 +326,7 @@ TInt CSSLSocket::Write(const unsigned char* aData, int aLen)
 {
 	int ret, pos(0);
 	do {
-		ret = mbedtls_ssl_write(&ssl, (const unsigned char*) aData + pos, static_cast<unsigned int>(aLen - pos));
+		ret = mbedtls_ssl_write(&ssl, aData + pos, static_cast<unsigned int>(aLen - pos));
 		if (ret < aLen) {
 			pos += ret;
 			continue;

@@ -8,7 +8,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
 import javax.microedition.io.SecureConnection;
@@ -21,10 +20,8 @@ import com.symbian.gcf.URI;
 public class SSLSocket implements SecureConnection {
 
 	private static LibraryFinalizer libraryFinalizer;
-	private final static Object globalLock;
 	
 	static {
-		globalLock = new Object();
 		try {
 			VmPort.getInstance().System_loadLibrary("javannssl");
 			_initLibrary();
@@ -44,32 +41,30 @@ public class SSLSocket implements SecureConnection {
 	private int port;
 	
 	public SSLSocket(String host, int port) throws IOException {
-		init("", host, port);
+		init(host, port);
 	}
 	
 	public SSLSocket(String aUrl) throws IOException {
 		URI url = new URI("ssl:" + aUrl);
-		init(aUrl, url.getHost(), Integer.parseInt(url.getPort()));
+		init(url.getHost(), Integer.parseInt(url.getPort()));
 	}
 	
-	private void init(String url, String host, int port) throws IOException {
+	private void init(String host, int port) throws IOException {
+		this.host = host;
+		this.port = port;
+		handle = _new();
 		finalizer = registerFinalize();
-		synchronized (globalLock) {
-			handle = _new();
-			this.host = host;
-			this.port = port;
-			int r = _set(handle, url, host, port);
-			if (r != 0) {
-				throw new IOException("Set host failed: " + r);
-			}
-			r = _initSsl(handle);
-			if (r != 0) {
-				throw new IOException("Init ssl failed: " + r);
-			}
+		int r = _set(handle, "", host, port);
+		if (r != 0) {
+			throw new IOException("Set host failed: " + r);
+		}
+		r = _initSsl(handle);
+		if (r != 0) {
+			throw new IOException("Init ssl failed: " + r);
 		}
 	}
 	
-	public void connect() throws IOException{
+	public void connect() throws IOException {
 		if (connectState != 0) return;
 		connectState = 1;
 		int r = _connect(handle);
@@ -81,7 +76,7 @@ public class SSLSocket implements SecureConnection {
 			throw new IOException("Handshake error " + r);
 	}
 	
-	public InputStream openInputStream() throws IOException {
+	public synchronized InputStream openInputStream() throws IOException {
 		if (connectState == 0)
 			connect();
 		if (inputState != 0)
@@ -118,11 +113,6 @@ public class SSLSocket implements SecureConnection {
 				if (r < 0) {
 					throw new IOException("Read error " + r);
 				}
-				try {
-					Thread.yield();
-				} catch (Exception e) {
-					throw new InterruptedIOException();
-				}
 				return r;
 			}
 			
@@ -133,7 +123,7 @@ public class SSLSocket implements SecureConnection {
 		};
 	}
 
-	public OutputStream openOutputStream() throws IOException {
+	public synchronized OutputStream openOutputStream() throws IOException {
 		if (connectState == 0)
 			connect();
 		if (outputState != 0)
@@ -179,12 +169,8 @@ public class SSLSocket implements SecureConnection {
 	public void close() {
 		if (connectState == 2 || handle == 0) return;
 		connectState = 2;
-		synchronized (globalLock) {
-			_closeSsl(handle);
-			_closeConnection(handle);
-			_destruct(handle);
-		}
-		handle = 0;
+//		_closeSsl(handle);
+		_closeConnection(handle);
 	}
 
 	public DataInputStream openDataInputStream() throws IOException {
@@ -237,6 +223,10 @@ public class SSLSocket implements SecureConnection {
 	
 	private void _finalize() {
 		if (handle == 0) return;
+		if (connectState == 1) {
+			connectState = 2;
+			_closeConnection(handle);
+		}
 		_destruct(handle);
 		handle = 0;
 	}

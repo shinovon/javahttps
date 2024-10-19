@@ -177,9 +177,7 @@ public class SSLSocket implements SecureConnection {
 		synchronized (globalLock) {
 			_closeSsl(handle);
 			_closeConnection(handle);
-			_destruct(handle);
 		}
-		handle = 0;
 	}
 
 	public DataInputStream openDataInputStream() throws IOException {
@@ -231,6 +229,10 @@ public class SSLSocket implements SecureConnection {
 	
 	private void _finalize() {
 		if (handle == 0) return;
+		if (connectState == 1) {
+			connectState = 2;
+			_closeConnection(handle);
+		}
 		_destruct(handle);
 		handle = 0;
 	}

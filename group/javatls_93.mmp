@@ -4,12 +4,14 @@ UID			 0x1000008d 0x20292B6A
 
 EPOCALLOWDLLDATA
 
+MACRO		UNICODE
+MACRO		__SYMBIAN32__
+MACRO		J9EPOC32
+
 NOSTRICTDEF
 
 LIBRARY	euser.lib
 LIBRARY libc.lib
-LIBRARY	libpthread.lib
-LIBRARY	libstdcpp.lib
 LIBRARY mbedtls.lib
 //STATICLIBRARY mbedtls.lib
 
@@ -17,8 +19,6 @@ CAPABILITY		all -tcb
 
 SYSTEMINCLUDE		/epoc32/include
 SYSTEMINCLUDE		/epoc32/include/stdapis
-SYSTEMINCLUDE		/epoc32/include/stdapis/sys
-SYSTEMINCLUDE		/epoc32/include/stdapis/stlport
 SYSTEMINCLUDE		/epoc32/include/mw
 SYSTEMINCLUDE		/epoc32/include/platform/mw
 SYSTEMINCLUDE		/epoc32/include/platform
@@ -27,14 +27,6 @@ SYSTEMINCLUDE		../../../githubprojects/mbedtls/include
 
 USERINCLUDE ../jrt93_inc
 USERINCLUDE ../inc
-
-OPTION CW -wchar_t on
-#if defined(ARMCC_4_0)
-OPTION ARMCC --import_all_vtbl
-#endif
-OPTION GCCE -fvisibility-inlines-hidden
-
-ARMFPU softvfp
 
 SOURCEPATH ../src
 
