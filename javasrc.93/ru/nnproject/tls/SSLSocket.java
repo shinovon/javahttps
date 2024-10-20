@@ -148,13 +148,13 @@ public class SSLSocket implements SecureConnection {
 				if (len+off > buf.length || off < 0 || len < 0)
 					throw new IllegalArgumentException();
 				int r;
-				if (off > 0) {
-					byte[] temp = new byte[len];
-					System.arraycopy(buf, off, temp, 0, len);
-					r = _write(handle, temp, 0, len);
-				} else {
-					r = _write(handle, buf, off, len);
-				}
+//				if (off > 0) {
+//					byte[] temp = new byte[len];
+//					System.arraycopy(buf, off, temp, 0, len);
+//					r = _write(handle, temp, 0, len);
+//				} else {
+				r = _write(handle, buf, off, len);
+//				}
 				if (r < 0) {
 					throw new IOException("Write error " + r);
 				}
