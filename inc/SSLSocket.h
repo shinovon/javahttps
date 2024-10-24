@@ -42,9 +42,9 @@ private:
 	char *iName;
 	char *iHost;
 	int iPort;
-	
+#ifdef READ_BUFFER
 	char *iBuffer;
 	int iBufferPosition;
 	int iBufferState;
-	
+#endif
 };

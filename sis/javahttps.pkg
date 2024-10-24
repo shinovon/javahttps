@@ -1,6 +1,6 @@
 &EN
 
-#{"Java HTTPS Extension"},(0x20292B6A),1,4,3
+#{"Java HTTPS Extension"},(0x20292B6A),1,4,4
 
 [0x101F7961], 0, 0, 0, {"S60ProductID"}
 [0x1028315F], 0, 0, 0, {"S60ProductID"}
@@ -30,7 +30,7 @@ if exists("z:\system\install\Series60v5.2.sis") OR
 	"g:\Progs\QtSDK\Symbian\SDKs\Symbian3Qt473\epoc32\data\z\resource\apps\javaexthttps.rsc" - "c:\resource\apps\javaexthttps.rsc"
 	"g:\Progs\QtSDK\Symbian\SDKs\Symbian3Qt473\epoc32\data\z\private\10003a3f\import\apps\javaexthttps_reg.rsc" - "c:\private\10003a3f\import\apps\javaexthttps_reg.rsc"
 	"G:\Progs\QtSDK\Symbian\SDKs\Symbian3Qt473\epoc32\release\armv5\urel\javaexthttps.exe"-"c:\sys\bin\javaexthttps.exe", FR, RI
-else ; 9.3
+else ; 9.3 or 9.4
 	if not exists("c:\sys\bin\Midp2VmArgModifier.dll")
 		"argmodifier_notfound.txt"-"", FT, FORCEABORT
 	endif

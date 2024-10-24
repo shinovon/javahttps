@@ -63,10 +63,12 @@ CSSLSocket::~CSSLSocket()
 	if (iHost != NULL) {
 		delete[] iHost;
 	}
+#ifdef READ_BUFFER
 	if (iBuffer != NULL) {
 		delete[] iBuffer;
 		iBuffer = NULL;
 	}
+#endif
 //	PLOG(EJavaRuntime, "-CSSLSocket::~CSSLSocket()");
 }
 
@@ -277,6 +279,7 @@ TInt CSSLSocket::Handshake()
 
 TInt CSSLSocket::Read(JNIEnv* aEnv, jbyteArray aJavaArray, int aOffset, int aLen)
 {
+#ifdef READ_BUFFER
 	if (iBuffer == NULL) {
 		iBuffer = new char[BUFFER_SIZE];
 		iBufferPosition = 0;
@@ -320,6 +323,32 @@ TInt CSSLSocket::Read(JNIEnv* aEnv, jbyteArray aJavaArray, int aOffset, int aLen
 	aEnv->SetByteArrayRegion(aJavaArray, aOffset, ret, (signed char*) iBuffer);
 	iBufferPosition += ret;
 	return ret;
+#else
+	int ret;
+	char* data = new char[aLen];
+	do {
+		ret = mbedtls_ssl_read(&ssl, (unsigned char*) data, static_cast<unsigned int>(aLen));
+		if (ret == MBEDTLS_ERR_SSL_CLIENT_RECONNECT) {
+			PLOG(EJavaRuntime, "CSSLSocket::Read(): reconnect requested");
+			ret = Handshake();
+			if (ret < 0) {
+				break;
+			}
+			continue;
+		}
+	} while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
+			ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+			ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
+	if (ret < 0) {
+		ELOG1(EJavaRuntime, "CSSLSocket::Read(): ssl read error: %x", -ret);
+	} else {
+		aEnv->SetByteArrayRegion(aJavaArray, aOffset, ret, (signed char*) data);
+	}
+	delete[] data;
+	return ret;
+#endif
 }
 
 TInt CSSLSocket::Write(const unsigned char* aData, int aLen)
