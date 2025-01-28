@@ -270,7 +270,8 @@ TInt CSSLSocket::Handshake()
 	} while (ret == MBEDTLS_ERR_SSL_WANT_READ ||
 			ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
 			ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
-			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS);
+			ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS ||
+			ret == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
 	if (ret < 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::Handshake(): ssl handshake error: %x", -ret);
 	}
