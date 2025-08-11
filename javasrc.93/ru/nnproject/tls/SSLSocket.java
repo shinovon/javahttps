@@ -134,7 +134,7 @@ public class SSLSocket implements SecureConnection {
 			public synchronized void write(int b) throws IOException {
 				if (handle == 0 || outputState == 2)
 					throw new IOException("Closed");
-				byte[] data = new byte[1];
+				byte[] data = new byte[] { (byte) b };
 				int r = _write(handle, data, 0, 1);
 				if (r < 0) {
 					throw new IOException("Write error " + r);

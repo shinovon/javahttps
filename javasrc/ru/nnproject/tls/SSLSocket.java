@@ -8,7 +8,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 
 import javax.microedition.io.SecureConnection;
@@ -139,7 +138,7 @@ public class SSLSocket implements SecureConnection {
 			public synchronized void write(int b) throws IOException {
 				if (handle == 0 || outputState == 2)
 					throw new IOException("Closed");
-				byte[] data = new byte[1];
+				byte[] data = new byte[] { (byte) b };
 				int r = _write(handle, data, 0, 1);
 				if (r < 0) {
 					throw new IOException("Write error " + r);
@@ -175,7 +174,7 @@ public class SSLSocket implements SecureConnection {
 		if (connectState == 2 || handle == 0) return;
 		connectState = 2;
 		synchronized (globalLock) {
-			_closeSsl(handle);
+//			_closeSsl(handle);
 			_closeConnection(handle);
 		}
 	}

@@ -51,8 +51,6 @@ SYSTEMINCLUDE		/epoc32/include/mw
 SYSTEMINCLUDE		/epoc32/include/platform/mw
 SYSTEMINCLUDE		/epoc32/include/platform
 
-SYSTEMINCLUDE		../../../githubprojects/mbedtls/include
-
 USERINCLUDE ../jrt_inc
 USERINCLUDE ../inc
 
@@ -70,4 +68,10 @@ SOURCEPATH ../src
 
 SOURCE lookup.cpp SSLSocket.cpp CSSLSocket.cpp
 
+MACRO PIPS
+
 STDCPP
+
+#if defined(ARMCC_4_0)
+OPTION ARMCC --import_all_vtbl
+#endif
