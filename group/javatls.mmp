@@ -71,7 +71,3 @@ SOURCE lookup.cpp SSLSocket.cpp CSSLSocket.cpp
 MACRO PIPS
 
 STDCPP
-
-#if defined(ARMCC_4_0)
-OPTION ARMCC --import_all_vtbl
-#endif
