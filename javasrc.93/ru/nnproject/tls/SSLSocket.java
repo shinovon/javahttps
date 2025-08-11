@@ -12,6 +12,7 @@ import java.io.OutputStream;
 
 import javax.microedition.io.SecureConnection;
 import javax.microedition.io.SecurityInfo;
+import javax.microedition.pki.CertificateException;
 
 import com.nokia.mj.impl.vmport.Finalizer;
 import com.nokia.mj.impl.vmport.VmPort;
@@ -74,6 +75,10 @@ public class SSLSocket implements SecureConnection {
 		r = _handshake(handle);
 		if (r != 0)
 			throw new IOException("Handshake error " + r);
+		
+		r = _verify(handle);
+		if (r != 0)
+			throw new CertificateException("Verify error " + r, null, (byte) 14);
 	}
 	
 	public synchronized InputStream openInputStream() throws IOException {
@@ -182,6 +187,7 @@ public class SSLSocket implements SecureConnection {
 	}
 
 	public String getAddress() throws IOException {
+		// TODO
 		return host;
 	}
 
@@ -190,8 +196,12 @@ public class SSLSocket implements SecureConnection {
 	}
 
 	public int getLocalPort() throws IOException {
-		// TODO
-		return 0;
+		if (connectState == 2 || handle == 0)
+			throw new IOException("Not open");
+		int r = _localPort(handle);
+		if (r < 0)
+			throw new IOException("Local port error " + r);
+		return r;
 	}
 
 	public int getPort() throws IOException {
@@ -236,6 +246,8 @@ public class SSLSocket implements SecureConnection {
 	private native int _initSsl(int handle);
 	private native int _connect(int handle);
 	private native int _handshake(int handle);
+	private native int _verify(int handle);
+	private native int _localPort(int handle);
 	native int _read(int handle, byte[] data, int offset, int length);
 	native int _write(int handle, byte[] data, int offset, int length);
 	private native int _closeSsl(int handle);

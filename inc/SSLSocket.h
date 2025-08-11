@@ -19,6 +19,7 @@ public:
 	
 	TInt Connect();
 	TInt Handshake();
+	TInt Verify();
 	
 	TInt Read(JNIEnv* aEnv, jbyteArray aJavaArray, int aOffset, int aLen);
 	TInt Write(const unsigned char* aData, int aLen);
@@ -26,11 +27,14 @@ public:
 	TInt CloseSsl();
 	void CloseConnection();
 	
+	TInt LocalPort();
+	
 private:
 	mbedtls_ssl_context ssl;
 	mbedtls_ssl_config conf;
 	mbedtls_ctr_drbg_context ctr_drbg;
 	mbedtls_entropy_context entropy;
+	mbedtls_x509_crt cacert;
 
 #ifdef USE_MBEDTLS_NET
 	mbedtls_net_context server_fd;

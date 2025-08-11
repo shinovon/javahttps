@@ -49,6 +49,21 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1handshake
 
 /*
  * Class:     ru_nnproject_tls_SSLSocket
+ * Method:    _verify
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1verify
+  (JNIEnv *, jobject, jint);
+/*
+ * Class:     ru_nnproject_tls_SSLSocket
+ * Method:    _localPort
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1localPort
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     ru_nnproject_tls_SSLSocket
  * Method:    _read
  * Signature: (I[BII)I
  */

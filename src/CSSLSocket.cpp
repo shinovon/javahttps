@@ -21,6 +21,7 @@
 #define PLOG(component, str)
 #define PLOG1(component, str, a)
 #define PLOG2(component, str, a, b)
+#define PLOG3(component, str, a, b, c)
 #define ELOG(component, str)
 #define ELOG1(component, str, a)
 #endif
@@ -46,6 +47,7 @@ CSSLSocket::~CSSLSocket()
 	mbedtls_ssl_config_free(&conf);
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
+	mbedtls_x509_crt_free(&cacert);
 	
 //	PLOG(EJavaRuntime, "+CSSLSocket::~CSSLSocket()");
 #ifdef USE_MBEDTLS_NET
@@ -132,7 +134,23 @@ TInt CSSLSocket::InitSsl()
 	}
 	
 	
+#ifdef NO_VERIFY
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
+#else
+	{
+		mbedtls_x509_crt_init(&cacert);
+
+		if ((ret = mbedtls_x509_crt_parse_path(&cacert, "C:/resource/mbedtls/cacerts/")) < 0) {
+			ELOG1(EJavaRuntime, "CSSLSocket::InitSsl(): crt parse error %d", ret);
+			mbedtls_x509_crt_free(&cacert);
+			mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
+//			goto exit;
+		} else {
+			mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
+			mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
+		}
+	}
+#endif
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 //	mbedtls_ssl_conf_dbg(&conf, my_debug, stdout);
 	mbedtls_ssl_conf_session_tickets(&conf, 0);
@@ -368,6 +386,26 @@ TInt CSSLSocket::Write(const unsigned char* aData, int aLen)
 			ret == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
 	if (ret < 0) {
 		ELOG1(EJavaRuntime, "CSSLSocket::Write(): ssl write error: %x", -ret);
+	}
+	return ret;
+}
+
+TInt CSSLSocket::Verify()
+{
+	int ret = mbedtls_ssl_get_verify_result(&ssl);
+//	PLOG1(EJavaRuntime, "CSSLSocket::Verify(): ret %d", ret);
+	return ret;
+}
+
+TInt CSSLSocket::LocalPort()
+{
+	struct sockaddr_in addr;
+	socklen_t len = sizeof(addr);
+	int ret;
+	if ((getsockname(iSockDesc, (struct sockaddr*)&addr, &len)) < 0) {
+		ret = -errno;
+	} else {
+		ret = ntohs(addr.sin_port);
 	}
 	return ret;
 }

@@ -65,6 +65,22 @@ JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1handshake
 	return r;
 }
 
+JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1verify
+ (JNIEnv*, jobject, jint aHandle)
+{
+	CSSLSocket* s = reinterpret_cast<CSSLSocket*>(aHandle);
+	TInt r = s->Verify();
+	return r;
+}
+
+JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1localPort
+ (JNIEnv*, jobject, jint aHandle)
+{
+	CSSLSocket* s = reinterpret_cast<CSSLSocket*>(aHandle);
+	TInt r = s->LocalPort();
+	return r;
+}
+
 JNIEXPORT jint JNICALL Java_ru_nnproject_tls_SSLSocket__1read
  (JNIEnv* aEnv, jobject, jint aHandle, jbyteArray aData, jint aOffset, jint aLen)
 {
