@@ -55,8 +55,8 @@ USERINCLUDE ../jrt_inc
 USERINCLUDE ../inc
 
 OPTION CW -wchar_t on
-#if defined(ARMCC_4_0)
-OPTION ARMCC --import_all_vtbl
+#ifdef ARMCC_4_0
+OPTION ARMCC --import_all_vtbl --visibility_inlines_hidden
 #endif
 OPTION GCCE -fvisibility-inlines-hidden
 
