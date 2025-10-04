@@ -550,7 +550,8 @@ public class HttpConnectionPatched extends DataConnection implements CreateConne
 			throw new IOException(Msg.getString("K0037"));
 		if (os != null)
 			return;
-		if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
+		if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")
+				&& !method.equals("PUT") && !method.equals("DELETE") && !method.equals("OPTIONS") && !method.equals("PATCH")) {
 			throw new IOException(Msg.getString("K00ad"));
 		} else {
 			this.method = method;
@@ -1014,7 +1015,9 @@ public class HttpConnectionPatched extends DataConnection implements CreateConne
 		if (outputStatus != 0)
 			throw new IOException(Msg.getString("K0192"));
 		if (os == null) {
-			method = "POST";
+			if (method == null || "GET".equals(method)) {
+				method = "POST";
+			}
 			String encoding = reqHeader.get("Transfer-Encoding");
 			if (encoding != null)
 				encoding = encoding.toLowerCase();
