@@ -597,6 +597,7 @@ public class HttpConnectionPatched extends DataConnection implements CreateConne
 					followRedirects = false;
 				else if (!value.equals("true"))
 					throw new IllegalArgumentException(Msg.getString("K00b5", equates[i][1]));
+				else followRedirects = true;
 			} else if (equates[i][0].equals("chunked") && equates[i][1] != null) {
 				String value = equates[i][1].toLowerCase();
 				if (value.equals("true"))
