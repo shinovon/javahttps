@@ -5,6 +5,7 @@
 #include "javasymbianoslayer.h"
 typedef void (*TFunc)();
 #include "ru_nnproject_tls_SSLSocket.h"
+#include "SSLSocket.h"
 const FuncTable funcTable[] = {
    { "Java_ru_nnproject_tls_SSLSocket__1closeConnection", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1closeConnection},
    { "Java_ru_nnproject_tls_SSLSocket__1closeSsl", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1closeSsl},
@@ -14,9 +15,11 @@ const FuncTable funcTable[] = {
    { "Java_ru_nnproject_tls_SSLSocket__1handshake", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1handshake},
    { "Java_ru_nnproject_tls_SSLSocket__1initLibrary", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1initLibrary},
    { "Java_ru_nnproject_tls_SSLSocket__1initSsl", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1initSsl},
+   { "Java_ru_nnproject_tls_SSLSocket__1localPort", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1localPort},
    { "Java_ru_nnproject_tls_SSLSocket__1new", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1new},
    { "Java_ru_nnproject_tls_SSLSocket__1read", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1read},
    { "Java_ru_nnproject_tls_SSLSocket__1set", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1set},
+   { "Java_ru_nnproject_tls_SSLSocket__1verify", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1verify},
    { "Java_ru_nnproject_tls_SSLSocket__1write", (unsigned int) Java_ru_nnproject_tls_SSLSocket__1write}
 };
 
